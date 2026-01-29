@@ -1,10 +1,28 @@
-import Student5 from "./pages/examples/Student5";
+import { Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import AppLayout from "./components/AppLayout";
 
 function App() {
     return (
-        <>
-            <Student5 />
-        </>
+        <Routes>
+            <Route
+                path="/"
+                element={
+                    <AppLayout>
+                        <Home />
+                    </AppLayout>
+                }
+            />
+            <Route
+                path="/login"
+                element={
+                    <AppLayout>
+                        <Login />
+                    </AppLayout>
+                }
+            />
+        </Routes>
     );
 }
 
