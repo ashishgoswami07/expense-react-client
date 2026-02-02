@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -25,3 +26,12 @@ function Dashboard({ user, setUser }) {
 }
 
 export default Dashboard;
+=======
+function Dashboard({user}){
+return(
+<div className="container text-center"></div>
+)
+    
+};
+export default Dashboard;
+>>>>>>> 12c0b2c51e84a22e48010364432d41959c682335
