@@ -1,5 +1,5 @@
 function Home(){
-    return (
+    return(
         <div className="container">
             <h3 className="text-center">Welcome to Expense App</h3>
         </div>

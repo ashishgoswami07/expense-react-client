@@ -1,115 +1,164 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate, Link } from "react-router-dom";
+import {GoogleOAuthProvider,GoogleLogin} from '@react-oauth/google';
 import { serverEndpoint } from "../config/appConfig";
+import { useDispatch } from 'react-redux';
+import { SET_USER } from "../redux/user/action";
 
-function Login({ setUser }) {
-  const navigate = useNavigate();
-
+function Login() {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-
+  const [message, setMessage] = useState("");
+  
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
+    const name = event.target.name;
+    const value = event.target.value;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  /* ================= EMAIL LOGIN ================= */
+  const validate = () => {
+    let newError = {};
+    let isValid = true;
+
+    if (formData.email.length === 0) {
+      newError.email = "Email is required";
+      isValid = false;
+    }
+    if (formData.password.length === 0) {
+      newError.password = "Password is required";
+      isValid = false;
+    }
+    setErrors(newError);
+    return isValid;
+  };
+    const navigate = useNavigate();
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
+    if (validate()) {
+      try {
+        const body = {
+          email: formData.email,
+          password: formData.password,
+        };
+        const config = { withCredentials: true };
+        const response = await axios.post(
+          `${serverEndpoint}/auth/login`,
+          body,
+          config,
+        );
+        // setUser(response.data.user);
+        dispatch({
+          type: SET_USER,
+          payload: response.data.user
+        })
 
-    try {
-      const response = await axios.post(
-        `${serverEndpoint}/auth/login`,
-        formData,
-        { withCredentials: true }
-      );
-
-      setUser(response.data.user);
-      navigate("/dashboard");
-    } catch (error) {
-      setErrors({
-        message:
-          error.response?.data?.message || "Login failed",
-      });
-    } finally {
-      setLoading(false);
+        console.log(response);
+        setMessage("User authenticated");
+        navigate("/",{replace:true});
+      } catch (error) {
+        console.log(error);
+        const errorMessage = error.response?.data?.message || "Something went wrong. Please try again later";
+        setErrors({
+          message: errorMessage,
+        });
+      }
+    } else {
+      console.log("Form has errors");
     }
   };
+const handleGoogleSuccess= async(authResponse) => {
+  try{
+    const body = {
+    idToken: authResponse?.credential,
+  }
+const response = await axios.post(`${serverEndpoint}/auth/google-auth`,
+  body,{withCredentials: true});
+  dispatch({
+    type: SET_USER,
+    payload: response.data.user
+  });
+  navigate("/",{replace:true});
+}
+catch(error){
+  console.log(error);
+  setErrors({
+    message: "Unable to process google sso"
+  });
+}
+};
+const handleGoogleFailure=(error) => {
+  console.log(error);
+  setErrors({
+    message: 'Something went wrong while performing google single sign-on'
+  });
 
-  /* ================= GOOGLE LOGIN ================= */
-  const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse?.credential) {
-      setErrors({ message: "Google token missing" });
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${serverEndpoint}/auth/google-auth`,
-        { idToken: credentialResponse.credential },
-        { withCredentials: true }
-      );
-
-      setUser(response.data.user);
-      navigate("/dashboard");
-    } catch (error) {
-      setErrors({ message: "Google login failed" });
-    }
-  };
-
+};
   return (
     <div className="container text-center">
       <h3>Login to continue</h3>
-
       {errors.message && (
         <div className="alert alert-danger">{errors.message}</div>
       )}
+      {message && (
+        <div className="alert alert-success">{message}</div>
+      )}
+      <div className="row justify-consent-center">
+        <div className="col-6">
 
       <form onSubmit={handleFormSubmit}>
-        <div className="mb-3">
+        <div>
+          <label>Email: </label>
           <input
             className="form-control"
             type="email"
             name="email"
             placeholder="Enter email"
-            value={formData.email}
             onChange={handleChange}
           />
+          {errors.email && <div className="text-danger">{errors.email}</div>}
         </div>
-
-        <div className="mb-3">
+        <div>
+          <label>Password: </label>
           <input
             className="form-control"
             type="password"
             name="password"
             placeholder="Enter password"
-            value={formData.password}
             onChange={handleChange}
           />
+          {errors.password && <div className="text-danger">{errors.password}</div>}
         </div>
 
-        <button className="btn btn-primary w-100 mb-3" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
+        <div>
+          <button className="btn btn-primary" type="submit">
+            Login
+          </button>
+        </div>
       </form>
-
-      <hr />
-
-      {/* 🔐 GOOGLE LOGIN */}
-      <GoogleLogin
-        onSuccess={handleGoogleSuccess}
-        onError={() =>
-          setErrors({ message: "Google Login Failed" })
-        }
-      />
+      </div>
+      </div>
+      <div className="row justify-consent-center">
+        <div className="col-6">
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure}/>
+          </GoogleOAuthProvider>
+        </div>
+        </div>
+      <p className="mt-3">
+        <Link to="/reset-password">Forgot Password?</Link>
+      </p>
+      <p>
+        Don't have an account? <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 }

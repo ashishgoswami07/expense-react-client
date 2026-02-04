@@ -1,78 +1,131 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
-
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
+import Home from "./pages/Home";
+import AppLayout from "./components/AppLayout";
+import {useEffect, useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Logout from "./pages/Logout";
 import UserLayout from "./components/UserLayout";
-import { serverEndpoint } from "./config/appConfig";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import axios from "axios";
+import {serverEndpoint} from "./config/appConfig";
+import { useSelector ,useDispatch} from "react-redux";
 import { SET_USER } from "./redux/user/action";
-
+import Groups from "./pages/Groups";
 function App() {
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state.userDetails);
   const [loading, setLoading] = useState(true);
+  
+  const isUserLoggedIn = async () => {
+    try {
+      const response = await axios.post(
+        `${serverEndpoint}/auth/is-user-logged-in`,
+        {},
+        { withCredentials: true }
+      );
 
-  // ✅ Check login from cookie (JWT / refresh flow later)
+      // setUserDetails(response.data.user);
+      dispatch({
+        type: SET_USER,
+        payload: response.data.user
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.post(
-          `${serverEndpoint}/auth/is-user-logged-in`,
-          {},
-          { withCredentials: true }
-        );
-
-        dispatch({
-          type: SET_USER,
-          payload: res.data.user,
-        });
-      } catch (error) {
-        // user not logged in → do nothing (state remains null)
-        console.log("Not logged in");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [dispatch]);
+    isUserLoggedIn();
+  }, []);
 
   if (loading) {
-    return <div className="text-center mt-5">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
     <Routes>
-      {/* 🔐 LOGIN */}
-      <Route
-        path="/"
-        element={
-          userDetails ? <Navigate to="/dashboard" /> : <Login />
-        }
-      />
-
-      {/* 📊 DASHBOARD (Protected + Layout) */}
-      <Route
-        path="/dashboard"
+      <Route 
+        path="/" 
         element={
           userDetails ? (
-            <UserLayout>
-              <Dashboard />
-            </UserLayout>
+            <Navigate to="/dashboard" />
           ) : (
-            <Navigate to="/" />
+            <AppLayout>
+              <Home />
+            </AppLayout>
+          )
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <Register />
           )
         }
       />
 
-      {/* 🚪 LOGOUT */}
+      <Route
+        path="/login"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <Login />
+          )
+        }
+      />
+
+      <Route
+        path="/reset-password"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <ResetPassword />
+          )
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          userDetails ? (
+            <UserLayout >
+              <Dashboard/>
+            </UserLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/groups"
+        element={
+          userDetails ? (
+            <UserLayout >
+              <Groups/>
+            </UserLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+
       <Route
         path="/logout"
         element={
-          userDetails ? <Logout /> : <Navigate to="/" />
+          userDetails ? (
+            <Logout />
+          ) : (
+            <Navigate to="/login" />
+          )
         }
       />
     </Routes>

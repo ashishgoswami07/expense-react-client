@@ -1,74 +1,157 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import { serverEndpoint } from "../config/appConfig";
+import { useDispatch } from 'react-redux';
+import { SET_USER } from "../redux/user/action";
 
-function Register({ setUser }) {
-  const navigate = useNavigate();
+function Register() {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState("");
+  
+  const handleChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
 
-  const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const validate = () => {
+    let newError = {};
+    let isValid = true;
 
-    try {
-      const response = await axios.post(
-        "http://localhost:5001/auth/register",
-        formData,
-        { withCredentials: true }
-      );
-
-      // ✅ SAVE USER IN STATE
-      setUser(response.data.user);
-
-      // ✅ NAVIGATE TO DASHBOARD
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+    if (formData.name.length === 0) {
+      newError.name = "Name is required";
+      isValid = false;
+    }
+    if (formData.email.length === 0) {
+      newError.email = "Email is required";
+      isValid = false;
+    }
+    if (formData.password.length === 0) {
+      newError.password = "Password is required";
+      isValid = false;
+    }
+    if (formData.confirmPassword.length === 0) {
+      newError.confirmPassword = "Confirm password is required";
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newError.confirmPassword = "Passwords do not match";
+      isValid = false;
+    }
+    setErrors(newError);
+    return isValid;
+  };
+    const navigate = useNavigate();
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    if (validate()) {
+      try {
+        const body = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        };
+        const config = { withCredentials: true };
+        const response = await axios.post(
+          `${serverEndpoint}/auth/register`,
+          body,
+          config,
+        );
+        dispatch({
+          type: SET_USER,
+          payload: response.data.user
+        });
+        console.log(response);
+        setMessage("User authenticated");
+        navigate("/",{replace:true});
+      } catch (error) {
+        console.log(error);
+        const errorMessage = error.response?.data?.message || "Something went wrong. Please try again later";
+        setErrors({
+          message: errorMessage,
+        });
+      }
+    } else {
+      console.log("Form has errors");
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Register</h2>
+    <div className="container text-center">
+      <h3>Register to continue</h3>
+      {errors.message && (
+        <div className="alert alert-danger">{errors.message}</div>
+      )}
+      {message && (
+        <div className="alert alert-success">{message}</div>
+      )}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div>
+          <label>Name: </label>
           <input
+            className="form-control"
+            type="text"
+            name="name"
+            placeholder="Enter your name"
+            onChange={handleChange}
+          />
+          {errors.name && <div className="text-danger">{errors.name}</div>}
+        </div>
+        <div>
+          <label>Email: </label>
+          <input
+            className="form-control"
             type="email"
             name="email"
-            placeholder="Email"
-            value={formData.email}
+            placeholder="Enter email"
             onChange={handleChange}
-            required
           />
+          {errors.email && <div className="text-danger">{errors.email}</div>}
+        </div>
+        <div>
+          <label>Password: </label>
+          <input
+            className="form-control"
+            type="password"
+            name="password"
+            placeholder="Enter password"
+            onChange={handleChange}
+          />
+          {errors.password && <div className="text-danger">{errors.password}</div>}
+        </div>
+        <div>
+          <label>Confirm Password: </label>
+          <input
+            className="form-control"
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm password"
+            onChange={handleChange}
+          />
+          {errors.confirmPassword && <div className="text-danger">{errors.confirmPassword}</div>}
         </div>
 
         <div>
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <button className="btn btn-primary" type="submit">
+            Register
+          </button>
         </div>
-
-        <button type="submit">Register</button>
       </form>
+      <p className="mt-3">
+        Already have an account? <Link to="/login">Login here</Link>
+      </p>
     </div>
   );
 }

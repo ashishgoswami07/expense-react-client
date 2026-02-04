@@ -1,13 +1,11 @@
-import UserHeader from "./UserHeader";
 import UserFooter from "./UserFooter";
+import UserHeader from "./UserHeader";
 
-function UserLayout({ user, children }) {
+function UserLayout({ children }) {
   return (
     <>
-      <UserHeader user={user} />
-      <main className="container my-4">
-        {children}
-      </main>
+      <UserHeader/>
+      {children}
       <UserFooter />
     </>
   );
