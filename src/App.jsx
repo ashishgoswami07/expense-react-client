@@ -1,13 +1,15 @@
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Logout from "./pages/Logout";
+import UserLayout from "./components/UserLayout";
+import { serverEndpoint } from "./config/appConfig";
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // ✅ Check if user already logged in (JWT cookie)
@@ -15,13 +17,13 @@ function App() {
     const checkAuth = async () => {
       try {
         const res = await axios.post(
-          "http://localhost:5001/auth/is-user-logged-in",
+          `${serverEndpoint}/auth/is-user-logged-in`,
           {},
           { withCredentials: true }
         );
-        setUser(res.data.user);
+        setUserDetails(res.data.user);
       } catch (err) {
-        setUser(null);
+        setUserDetails(null);
       } finally {
         setLoading(false);
       }
@@ -40,64 +42,35 @@ function App() {
       <Route
         path="/"
         element={
-          user ? (
+          userDetails ? (
             <Navigate to="/dashboard" />
           ) : (
-            <Login setUser={setUser} />   // ✅ IMPORTANT
+            <Login setUser={setUserDetails} />
           )
         }
       />
 
-      {/* 📊 DASHBOARD */}
+      {/* 📊 DASHBOARD (Protected + Layout) */}
       <Route
         path="/dashboard"
         element={
-          user ? (
-            <Dashboard user={user} setUser={setUser} />
+          userDetails ? (
+            <UserLayout user={userDetails}>
+              <Dashboard user={userDetails} />
+            </UserLayout>
           ) : (
             <Navigate to="/" />
           )
         }
+      />
+
+      {/* 🚪 LOGOUT */}
+      <Route
+        path="/logout"
+        element={<Logout setUser={setUserDetails} />}
       />
     </Routes>
   );
 }
 
 export default App;
-=======
-import { useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import AppLayout from "./components/AppLayout";
-function App() {
-    //value of useradetails represent whether
-    const [userDetails, setUserDetails] = useState(null);
-
-    return (
-        <Routes>
-            <Route path="/" element={userDetails ? (<Navigate to="/dashboard"/>):(
-                <AppLayout>
-                    <Home />
-                </AppLayout>
-            )
-            }/>
-            <Route path="/login" element={userDetails ? (<Navigate to="/dashboard"/>):(
-                <AppLayout>
-                    <Login setUser={setUserDetails}/>
-                </AppLayout>
-            )
-            }/>
-            <Route path="/dashboard"element={
-                userDetails?(<Dashboard user={userDetails}/>):(
-                    <Navigate to="/login"/>
-                )
-            }
-            />
-        </Routes>
-    );
-}
-    
-export default App;
->>>>>>> 12c0b2c51e84a22e48010364432d41959c682335

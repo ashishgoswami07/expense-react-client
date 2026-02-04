@@ -1,12 +1,13 @@
-import { Link, Outlet } from "react-router-dom";
 import UserHeader from "./UserHeader";
 import UserFooter from "./UserFooter";
 
-function UserLayout() {
+function UserLayout({ user, children }) {
   return (
     <>
-      <UserHeader />   {/* Dashboard + Logout links */}
-      <Outlet />       {/* Logged-in pages */}
+      <UserHeader user={user} />
+      <main className="container my-4">
+        {children}
+      </main>
       <UserFooter />
     </>
   );

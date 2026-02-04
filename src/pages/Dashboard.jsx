@@ -1,37 +1,13 @@
-<<<<<<< HEAD
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-function Dashboard({ user, setUser }) {
-  const navigate = useNavigate();
-
-  const logout = async () => {
-    await axios.post(
-      "http://localhost:5001/auth/logout",
-      {},
-      { withCredentials: true }
-    );
-    setUser(null);
-    navigate("/");
-  };
+function Dashboard() {
+  const user = useSelector((state) => state.userDetails);
 
   return (
-    <div className="container mt-5 text-center">
-      <h2>Welcome {user.email}</h2>
-      <button className="btn btn-danger mt-3" onClick={logout}>
-        Logout
-      </button>
+    <div className="container text-center">
+      <h4>Welcome, {user?.name || user?.email}</h4>
     </div>
   );
 }
 
 export default Dashboard;
-=======
-function Dashboard({user}){
-return(
-<div className="container text-center"></div>
-)
-    
-};
-export default Dashboard;
->>>>>>> 12c0b2c51e84a22e48010364432d41959c682335
