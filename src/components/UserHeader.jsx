@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 
 function UserHeader() {
     const user = useSelector((state) => state.userDetails);
@@ -29,7 +29,11 @@ function UserHeader() {
                     id="navbarSupportedContent"
                 >
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        {/* Add other nav links here if needed */}
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/groups">
+                                My Groups
+                            </Link>
+                        </li>
                     </ul>
                     <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li className="nav-item dropdown">
