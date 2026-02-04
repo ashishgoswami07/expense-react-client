@@ -1,8 +1,9 @@
-import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { serverEndpoint } from "../config/appConfig";
 import { useDispatch } from "react-redux";
+import axios from "axios";
+
+import { serverEndpoint } from "../config/appConfig";
 import { CLEAR_USER } from "../redux/user/action";
 
 function Logout() {
@@ -18,8 +19,9 @@ function Logout() {
           { withCredentials: true }
         );
       } catch (error) {
-        console.log(error);
+        console.error("Logout failed:", error);
       } finally {
+        // Clear Redux state and redirect
         dispatch({ type: CLEAR_USER });
         navigate("/login");
       }
@@ -28,7 +30,11 @@ function Logout() {
     handleLogout();
   }, [dispatch, navigate]);
 
-  return <p>Logging out...</p>;
+  return (
+    <div className="container text-center mt-5">
+      <p>Logging out...</p>
+    </div>
+  );
 }
 
 export default Logout;
