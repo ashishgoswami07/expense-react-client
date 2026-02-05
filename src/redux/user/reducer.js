@@ -13,6 +13,6 @@ switch (action.type){
     //is involved due to changes in some other satate varibale
     //maintained by redux.
     default:
-        return 
+        return state;
 }
 };
