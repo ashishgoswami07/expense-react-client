@@ -3,17 +3,21 @@ import { useEffect, useState } from "react";
 import { serverEndpoint } from "../config/appConfig";
 import GroupCard from "../components/GroupCard";
 import CreateGroupModal from "../components/CreateGroupModal";
+import EditGroupModal from "../components/EditGroupModal";
 
 function Groups() {
   const [groups, setGroups] = useState(null);
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
-const fetchGroups = async () = {
+  const fetchGroups = async () => {
     try {
       const response = await axios.get(`${serverEndpoint}/groups/my-groups`, {
         withCredentials: true,
       });
+      console.log('Fetched groups:', response.data);
       setGroups(response.data);
     } catch (error) {
       console.log(error);
@@ -32,6 +36,15 @@ const fetchGroups = async () = {
       setGroups(groups ? [...groups, data] : [data]);
     }
   }
+
+  const handleEditGroup = (group) => {
+    setSelectedGroup(group);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteGroup = (groupId) => {
+    setGroups(groups.filter(g => g._id !== groupId));
+  };
 
   useEffect(() => {
     fetchGroups();
@@ -70,7 +83,12 @@ const fetchGroups = async () = {
         <div className="row g-4">
           {groups.map((group) => (
             <div className="col-md-6 col-lg-4" key={group._id}>
-              <GroupCard group={group} onUpdate={handleGroupUpdateSucess}/>
+              <GroupCard 
+                group={group} 
+                onUpdate={handleGroupUpdateSucess}
+                onEdit={handleEditGroup}
+                onDelete={handleDeleteGroup}
+              />
             </div>
           ))}
         </div>
@@ -80,6 +98,13 @@ const fetchGroups = async () = {
         show={show}
         onHide={() => setShow(false)}
         onSuccess={handleGroupUpdateSucess}
+      />
+
+      <EditGroupModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        onSuccess={handleGroupUpdateSucess}
+        group={selectedGroup}
       />
     </div>
   );
