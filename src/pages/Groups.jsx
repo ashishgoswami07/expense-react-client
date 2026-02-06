@@ -9,7 +9,7 @@ function Groups() {
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
 
-  const fetchGroups = async () => {
+const fetchGroups = async () = {
     try {
       const response = await axios.get(`${serverEndpoint}/groups/my-groups`, {
         withCredentials: true,
